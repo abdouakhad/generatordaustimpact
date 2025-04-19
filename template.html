@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DAUST Impact - J'y serai</title>
   <style>
     body {
@@ -11,18 +12,22 @@
       background-color: #f4f4f4;
       padding: 20px;
     }
+
     canvas {
       border: 1px solid #ccc;
       max-width: 100%;
       margin-top: 20px;
     }
-    input, button {
+
+    input,
+    button {
       margin: 10px;
       padding: 10px;
       font-size: 1rem;
     }
   </style>
 </head>
+
 <body>
 
   <h2>Ajoutez et ajustez votre photo</h2>
@@ -37,7 +42,7 @@
     const ctx = canvas.getContext('2d');
 
     const bg = new Image();
-    bg.src = 'J’y serai avec.png';
+    bg.src = './images/image.png'; // Chemin vers l'image de fond
 
     let userImg = null;
     let dragging = false;
@@ -122,4 +127,5 @@
   </script>
 
 </body>
+
 </html>
