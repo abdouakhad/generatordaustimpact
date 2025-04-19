@@ -42,7 +42,7 @@
     const ctx = canvas.getContext('2d');
 
     const bg = new Image();
-    bg.src = './images/image.png'; // Chemin vers l'image de fond
+    bg.src = './images/image.png'; // Assure-toi que ce nom est correct
 
     let userImg = null;
     let dragging = false;
@@ -51,6 +51,8 @@
     let imgW, imgH;
 
     const frame = { x: 120, y: 420, w: 220, h: 220 };
+
+    let lastTouchDist = null;
 
     bg.onload = () => draw();
 
@@ -73,7 +75,6 @@
           imgW = userImg.width;
           imgH = userImg.height;
 
-          // Taille par défaut
           const ratio = Math.max(frame.w / imgW, frame.h / imgH);
           scale = ratio;
           imgX = frame.x + (frame.w - imgW * scale) / 2;
@@ -86,7 +87,7 @@
       reader.readAsDataURL(e.target.files[0]);
     });
 
-    // Mouse events
+    // Desktop: Dragging
     canvas.addEventListener('mousedown', (e) => {
       startX = e.offsetX;
       startY = e.offsetY;
@@ -108,7 +109,7 @@
       }
     });
 
-    // Zoom with mouse wheel
+    // Desktop: Scroll to zoom
     canvas.addEventListener('wheel', (e) => {
       if (userImg) {
         e.preventDefault();
@@ -117,6 +118,50 @@
         draw();
       }
     });
+
+    // Mobile: Touch gesture for drag and pinch zoom
+    canvas.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 1) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        dragging = true;
+      } else if (e.touches.length === 2) {
+        lastTouchDist = getTouchDist(e.touches);
+      }
+    });
+
+    canvas.addEventListener('touchmove', (e) => {
+      e.preventDefault();
+
+      if (e.touches.length === 1 && dragging && userImg) {
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        imgX += dx;
+        imgY += dy;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        draw();
+      } else if (e.touches.length === 2 && userImg) {
+        const newDist = getTouchDist(e.touches);
+        if (lastTouchDist) {
+          const zoom = (newDist - lastTouchDist) / 200; // Adjust sensitivity
+          scale = Math.max(0.1, scale + zoom);
+          draw();
+        }
+        lastTouchDist = newDist;
+      }
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', () => {
+      dragging = false;
+      lastTouchDist = null;
+    });
+
+    function getTouchDist(touches) {
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
 
     function downloadImage() {
       const link = document.createElement('a');
