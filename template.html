@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DAUST Impact - J'y serai</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 20px;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      max-width: 100%;
+      margin-top: 20px;
+    }
+    input, button {
+      margin: 10px;
+      padding: 10px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Ajoutez et ajustez votre photo</h2>
+  <input type="file" id="photoInput" accept="image/*">
+  <br>
+  <button onclick="downloadImage()">📥 Télécharger mon visuel</button>
+
+  <canvas id="canvas" width="1080" height="1080"></canvas>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    const bg = new Image();
+    bg.src = 'J’y serai avec.png';
+
+    let userImg = null;
+    let dragging = false;
+    let imgX = 120, imgY = 420, scale = 1;
+    let startX, startY;
+    let imgW, imgH;
+
+    const frame = { x: 120, y: 420, w: 220, h: 220 };
+
+    bg.onload = () => draw();
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(bg, 0, 0, canvas.width, canvas.height);
+
+      if (userImg) {
+        const displayW = imgW * scale;
+        const displayH = imgH * scale;
+        ctx.drawImage(userImg, imgX, imgY, displayW, displayH);
+      }
+    }
+
+    document.getElementById('photoInput').addEventListener('change', function (e) {
+      const reader = new FileReader();
+      reader.onload = function (event) {
+        userImg = new Image();
+        userImg.onload = function () {
+          imgW = userImg.width;
+          imgH = userImg.height;
+
+          // Taille par défaut
+          const ratio = Math.max(frame.w / imgW, frame.h / imgH);
+          scale = ratio;
+          imgX = frame.x + (frame.w - imgW * scale) / 2;
+          imgY = frame.y + (frame.h - imgH * scale) / 2;
+
+          draw();
+        };
+        userImg.src = event.target.result;
+      };
+      reader.readAsDataURL(e.target.files[0]);
+    });
+
+    // Mouse events
+    canvas.addEventListener('mousedown', (e) => {
+      startX = e.offsetX;
+      startY = e.offsetY;
+      dragging = true;
+    });
+
+    canvas.addEventListener('mouseup', () => dragging = false);
+    canvas.addEventListener('mouseleave', () => dragging = false);
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (dragging && userImg) {
+        const dx = e.offsetX - startX;
+        const dy = e.offsetY - startY;
+        imgX += dx;
+        imgY += dy;
+        startX = e.offsetX;
+        startY = e.offsetY;
+        draw();
+      }
+    });
+
+    // Zoom with mouse wheel
+    canvas.addEventListener('wheel', (e) => {
+      if (userImg) {
+        e.preventDefault();
+        const delta = e.deltaY > 0 ? -0.05 : 0.05;
+        scale = Math.max(0.1, scale + delta);
+        draw();
+      }
+    });
+
+    function downloadImage() {
+      const link = document.createElement('a');
+      link.download = 'DAUST_JySerai.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+
+</body>
+</html>
